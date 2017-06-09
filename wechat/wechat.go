@@ -42,8 +42,8 @@ type service struct {
 
 // New 生成一个wechat实例
 func New(appkey, appSecret string) *Wechat {
-	w := &Wechat{appKey: appkey, appSecret: appSecret}
-	w.tokenSwitch = false
+	w := &Wechat{client: http.DefaultClient, tokenSwitch: false,
+		appKey: appkey, appSecret: appSecret}
 	w.User = (*UserService)(&w.common)
 	w.Card = (*CardService)(&w.common)
 	w.Token = (*TokenService)(&w.common)

@@ -1,70 +1,13 @@
 package wechat
 
-import (
-	"fmt"
-
-	"github.com/pkg/errors"
-)
+import "fmt"
 
 // UserService 处理与用户相关的API，包括用户授权登录和获取、更新用户资料
 type UserService service
 
 const (
-	urlGetOAuthAccessToken = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
-	urlGetOAuthUserInfo    = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s&lang=zh_CN"
-	urlGetUserInfo         = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN"
+	urlGetUserInfo = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN"
 )
-
-// OAuthUser 微信oauth_user
-type OAuthUser struct {
-	Openid     string `json:"openid"`
-	Nickname   string `json:"nickname"`
-	Sex        int    `json:"sex"` //用户的性别，值为1时是男性，值为2时是女性，值为0时是未知
-	Province   string `json:"province"`
-	City       string `json:"city"`
-	Country    string `json:"country"`
-	HeadImgURL string `json:"headimgurl"`
-	Unionid    string `json:"unionid"`
-	// Privilege  string  `json:"privilege"` //用户特权信息，json 数组，如微信沃卡用户为（chinaunicom）
-}
-
-// GetOAuthUserByCode 直接通过code获取OAuthUser
-func (s *UserService) GetOAuthUserByCode(code string) (*OAuthUser, error) {
-	// 从微信获取token
-	url := fmt.Sprintf(urlGetOAuthAccessToken, s.wechat.Key(), s.wechat.Secret(), code)
-	req, err := s.wechat.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	token := &struct {
-		AccessToken  string  `json:"access_token"`
-		ExpiresIn    float64 `json:"expires_in"`
-		RefreshToken string  `json:"refresh_token"`
-		Openid       string  `json:"openid"`
-		Unionid      string  `json:"unionid"`
-		Scope        string  `json:"scope"`
-	}{}
-	_, err = s.wechat.Do(nil, req, token)
-	if err != nil {
-		return nil, err
-	}
-	if len(token.AccessToken) == 0 {
-		return nil, errors.New("通过code获取OAuthAccessToken失败")
-	}
-
-	// 用token获取用户信息
-	url = fmt.Sprintf(urlGetOAuthUserInfo, token.AccessToken, token.Openid)
-	req, err = s.wechat.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	oauthUser := &OAuthUser{}
-	_, err = s.wechat.Do(nil, req, oauthUser)
-	if err != nil {
-		return nil, err
-	}
-	return oauthUser, err
-}
 
 // WXUserInfo 微信用户基本信息
 type WXUserInfo struct {

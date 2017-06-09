@@ -54,7 +54,7 @@ func (t *TokenService) verifyAccessToken() (valid bool) {
 }
 
 func (t *TokenService) requestAccessToken() {
-	url := fmt.Sprintf(urlGetAccessToken, t.wechat.Key(), t.wechat.Secret())
+	url := fmt.Sprintf(urlGetAccessToken, t.wechat.AppID, t.wechat.AppSecret)
 	req, err := t.wechat.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Printf("获取AccessToken请求异常 error: %s", err.Error())

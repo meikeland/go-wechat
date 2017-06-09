@@ -8,19 +8,17 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"sync"
 
-	"github.com/pkg/errors"
+	"github.com/gotit/errors"
 )
 
 // Wechat 的所有变量
 type Wechat struct {
-	clientMu sync.Mutex   // clientMu protects the client during calls that modify the CheckRedirect func.
-	client   *http.Client // HTTP client used to communicate with the API.
-	BaseURL  *url.URL
+	client  *http.Client // HTTP client used to communicate with the API.
+	BaseURL *url.URL
 
-	appKey      string
-	appSecret   string
+	AppID       string
+	AppSecret   string
 	tokenSwitch bool // true 开启access token 维护机制, false 关闭
 	accessToken string
 
@@ -30,6 +28,7 @@ type Wechat struct {
 	Card  *CardService
 	Pay   *PayService
 	Token *TokenService
+	OAuth *OAuthService
 }
 
 type service struct {
@@ -38,8 +37,7 @@ type service struct {
 
 // New 生成一个wechat实例
 func New(appkey, appSecret string) *Wechat {
-	w := &Wechat{client: http.DefaultClient, tokenSwitch: false,
-		appKey: appkey, appSecret: appSecret}
+	w := &Wechat{client: http.DefaultClient, tokenSwitch: false, AppID: appkey, AppSecret: appSecret}
 	w.User = (*UserService)(&w.common)
 	w.Card = (*CardService)(&w.common)
 	w.Pay = (*PayService)(&w.common)
@@ -52,16 +50,6 @@ func (w *Wechat) StartToken() *Wechat {
 	w.tokenSwitch = true
 	w.Token.Start()
 	return w
-}
-
-// Key 获取app key
-func (w *Wechat) Key() string {
-	return w.appKey
-}
-
-// Secret 获取app secret
-func (w *Wechat) Secret() string {
-	return w.appSecret
 }
 
 // GetAccessToken 获取 access token

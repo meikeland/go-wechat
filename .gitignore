@@ -1,0 +1,14 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+.glide/
+.DS_STORE
+/tmp
+/**/tmp
+/.vscode
+/**/.vscode
+*debug

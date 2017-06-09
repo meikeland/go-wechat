@@ -17,15 +17,10 @@ import (
 type Wechat struct {
 	clientMu sync.Mutex   // clientMu protects the client during calls that modify the CheckRedirect func.
 	client   *http.Client // HTTP client used to communicate with the API.
+	BaseURL  *url.URL
 
-	// Base URL for API requests. Defaults to the public GitHub API, but can be
-	// set to a domain endpoint to use with GitHub Enterprise. BaseURL should
-	// always be specified with a trailing slash.
-	BaseURL *url.URL
-
-	appKey    string
-	appSecret string
-
+	appKey      string
+	appSecret   string
 	tokenSwitch bool // true 开启access token 维护机制, false 关闭
 	accessToken string
 
@@ -33,6 +28,7 @@ type Wechat struct {
 
 	User  *UserService
 	Card  *CardService
+	Pay   *PayService
 	Token *TokenService
 }
 
@@ -46,6 +42,7 @@ func New(appkey, appSecret string) *Wechat {
 		appKey: appkey, appSecret: appSecret}
 	w.User = (*UserService)(&w.common)
 	w.Card = (*CardService)(&w.common)
+	w.Pay = (*PayService)(&w.common)
 	w.Token = (*TokenService)(&w.common)
 	return w
 }
@@ -80,11 +77,7 @@ func (w *Wechat) saveAccessToken(accessToken string) {
 	w.accessToken = accessToken
 }
 
-// NewRequest creates an API request. A relative URL can be provided in urlStr,
-// in which case it is resolved relative to the BaseURL of the Client.
-// Relative URLs should always be specified without a preceding slash. If
-// specified, the value pointed to by body is JSON encoded and included as the
-// request body.
+// NewRequest 创建一个api请求体, 以json发送body参数
 func (w *Wechat) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	rel, err := url.Parse(urlStr)
 	if err != nil {
@@ -113,15 +106,7 @@ func (w *Wechat) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	return req, nil
 }
 
-// Do sends an API request and returns the API response. The API response is
-// JSON decoded and stored in the value pointed to by v, or returned as an
-// error if an API error has occurred. If v implements the io.Writer
-// interface, the raw response body will be written to v, without attempting to
-// first decode it. If rate limit is exceeded and reset time is in the future,
-// Do returns *RateLimitError immediately without making a network API call.
-//
-// The provided ctx must be non-nil. If it is canceled or times out,
-// ctx.Err() will be returned.
+// Do 执行http请求，并默认用json解析返回数据到结构体v
 func (w *Wechat) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
 	if ctx != nil {
 		req = req.WithContext(ctx)

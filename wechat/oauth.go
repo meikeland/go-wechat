@@ -76,11 +76,11 @@ func (s *OAuthService) GetUserByAccessToken(accessToken, openID string) (*OAuthU
 	return oauthUser, err
 }
 
-// BuildAuthPage 生成微信网页授权的页面地址，这个地址中的redirect_uri参数
+// BuildOAuthPage 生成微信网页授权的页面地址，这个地址中的redirect_uri参数
 // 是在用户同意微信授权之后，重定向到第三方网站的页面，因此landingPage是一个形如: https://www.abc.com/login的地址
 // 这个地址会接收到微信提供的code参数，如果想要回到授权前的页面，应传入from参数，
 // 在正确使用code拉取用户信息之后，回到from这个页面
-func (s *OAuthService) BuildAuthPage(landingPage, from string) string {
+func (s *OAuthService) BuildOAuthPage(landingPage, from string) string {
 	// 将from转换为landingPage?from={from}的地址
 	redirectURL := url.QueryEscape(fmt.Sprintf("%s?from=%s", landingPage, from))
 	return fmt.Sprintf(urlOAuthPage, s.wechat.AppID, redirectURL)

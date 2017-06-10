@@ -12,8 +12,8 @@ import (
 	"github.com/gotit/errors"
 )
 
-// Wechat 的所有变量
-type Wechat struct {
+// ApiClient 的所有变量
+type ApiClient struct {
 	client  *http.Client // HTTP client used to communicate with the API.
 	BaseURL *url.URL
 
@@ -32,28 +32,29 @@ type Wechat struct {
 }
 
 type service struct {
-	wechat *Wechat
+	wechat *ApiClient
 }
 
 // New 生成一个wechat实例
-func New(appkey, appSecret string) *Wechat {
-	w := &Wechat{client: http.DefaultClient, tokenSwitch: false, AppID: appkey, AppSecret: appSecret}
+func New(appkey, appSecret string) *ApiClient {
+	w := &ApiClient{client: http.DefaultClient, tokenSwitch: false, AppID: appkey, AppSecret: appSecret}
 	w.User = (*UserService)(&w.common)
 	w.Card = (*CardService)(&w.common)
 	w.Pay = (*PayService)(&w.common)
 	w.Token = (*TokenService)(&w.common)
+	w.OAuth = (*OAuthService)(&w.common)
 	return w
 }
 
 // StartToken 开始token维护工作
-func (w *Wechat) StartToken() *Wechat {
+func (w *ApiClient) StartToken() *ApiClient {
 	w.tokenSwitch = true
 	w.Token.Start()
 	return w
 }
 
 // GetAccessToken 获取 access token
-func (w *Wechat) GetAccessToken() (string, error) {
+func (w *ApiClient) GetAccessToken() (string, error) {
 	if !w.tokenSwitch {
 		return "", errors.Errorf("未开启token自动维护机制")
 	}
@@ -61,12 +62,12 @@ func (w *Wechat) GetAccessToken() (string, error) {
 }
 
 // saveAccessToken 保存 access token
-func (w *Wechat) saveAccessToken(accessToken string) {
+func (w *ApiClient) saveAccessToken(accessToken string) {
 	w.accessToken = accessToken
 }
 
 // NewRequest 创建一个api请求体, 以json发送body参数
-func (w *Wechat) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+func (w *ApiClient) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	rel, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
@@ -95,7 +96,7 @@ func (w *Wechat) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 }
 
 // Do 执行http请求，并默认用json解析返回数据到结构体v
-func (w *Wechat) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
+func (w *ApiClient) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
 	if ctx != nil {
 		req = req.WithContext(ctx)
 	}

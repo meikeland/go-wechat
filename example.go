@@ -43,5 +43,13 @@ func wechatOAuth(c *gin.Context) {
 }
 
 func landingFromWeChat(c *gin.Context) {
+	code := c.Query("code")
+	from := c.Query("from")
+	user, err := wechatClient.OAuth.GetUserByCode(code)
+	if err != nil {
+		panic(err.Error())
+	}
 
+	log.Print(user)
+	log.Print(from)
 }

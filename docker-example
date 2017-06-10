@@ -1,0 +1,17 @@
+FROM registry.cn-beijing.aliyuncs.com/meike/golang:alpine
+MAINTAINER meike_dev@aliyun.com
+
+# 避免在docker环境中生成时，无法找到gopkg上的包的问题
+RUN git config --global http.https://gopkg.in.followRedirects true
+
+ENV APP_DIR=$GOPATH/src/github.com/meikeland/go-wechat
+
+COPY . $APP_DIR
+
+WORKDIR $APP_DIR
+
+RUN go get && go install && find . -name "*.go" | xargs rm -f
+
+ENTRYPOINT $GOPATH/bin/go-wechat
+
+EXPOSE 80

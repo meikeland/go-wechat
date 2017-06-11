@@ -12,11 +12,16 @@ import (
 )
 
 var (
-	wechatClient *wechat.ApiClient
+	wechatClient *wechat.APIClient
 )
 
 func main() {
-	wechatClient = wechat.New("wxadbd9d3df031fabf", "3b4993c244c39759727c863de53baddb")
+	config := wechat.APIConfig{
+		AppID:                  "wxadbd9d3df031fabf",
+		AppSecret:              "3b4993c244c39759727c863de53baddb",
+		AccessTokenCachePolicy: wechat.CachePolicyAutonomy,
+	}
+	wechatClient = wechat.New(config)
 
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")

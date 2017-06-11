@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,19 +12,20 @@ import (
 )
 
 var (
-	wechatClient wechat.ApiClient
+	wechatClient *wechat.ApiClient
 )
 
 func main() {
-	wechatClient := wechat.New("your app id", "your app secret")
-	accessToken, _ := wechatClient.GetAccessToken()
-	log.Print(accessToken)
+	wechatClient = wechat.New("wxadbd9d3df031fabf", "3b4993c244c39759727c863de53baddb")
 
 	router := gin.Default()
 	router.Use(wechatOAuth)
-	router.GET("landing", landingFromWeChat)
+	router.GET("/", index)
+	router.GET("/landing", landingFromWeChat)
+	log.Fatal(router.Run(":80"))
 }
 
+// gin的middleware，用于验证处理微信网页授权
 func wechatOAuth(c *gin.Context) {
 	reqPath := c.Request.URL.Path
 	if strings.Contains(reqPath, "/landing") {
@@ -31,17 +33,24 @@ func wechatOAuth(c *gin.Context) {
 		return
 	}
 
-	openID, _ := c.Request.Cookie("openID")
-	if openID == nil {
-		oauthURL := wechatClient.OAuth.BuildOAuthPage("http://www.meistore.cn/landing", c.Request.RequestURI)
+	openID := c.Query("openID")
+	if len(openID) == 0 {
+		oauthURL := wechatClient.OAuth.Link("http://www.meistore.cn/landing", c.Request.RequestURI)
 		c.Redirect(http.StatusTemporaryRedirect, oauthURL)
 		c.Abort()
 	} else {
-		c.Set("openID", openID.Value)
+		c.Set("openID", openID)
 		c.Next()
 	}
 }
 
+// index 首页，如果已经授权过，则会拿到openID
+func index(c *gin.Context) {
+	openID, _ := c.Get("openID")
+	c.String(200, "你的openID是%s", openID)
+}
+
+// landingFromWeChat 从微信授权后回到本站点的页面，自带code和from参数
 func landingFromWeChat(c *gin.Context) {
 	code := c.Query("code")
 	from := c.Query("from")
@@ -50,6 +59,7 @@ func landingFromWeChat(c *gin.Context) {
 		panic(err.Error())
 	}
 
-	log.Print(user)
-	log.Print(from)
+	// 为演示方便，这里直接将获取到的openID放到请求参数里了
+	from = fmt.Sprintf("%s?openID=%s", from, user.OpenID)
+	c.Redirect(http.StatusFound, from)
 }

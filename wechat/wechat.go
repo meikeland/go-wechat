@@ -38,6 +38,8 @@ type service struct {
 // New 生成一个wechat实例
 func New(appkey, appSecret string) *ApiClient {
 	w := &ApiClient{client: http.DefaultClient, tokenSwitch: false, AppID: appkey, AppSecret: appSecret}
+	w.common.wechat = w
+
 	w.User = (*UserService)(&w.common)
 	w.Card = (*CardService)(&w.common)
 	w.Pay = (*PayService)(&w.common)

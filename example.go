@@ -19,6 +19,8 @@ func main() {
 	wechatClient = wechat.New("wxadbd9d3df031fabf", "3b4993c244c39759727c863de53baddb")
 
 	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
+
 	router.Use(wechatOAuth)
 	router.GET("/", index)
 	router.GET("/landing", landingFromWeChat)
@@ -47,7 +49,9 @@ func wechatOAuth(c *gin.Context) {
 // index 首页，如果已经授权过，则会拿到openID
 func index(c *gin.Context) {
 	openID, _ := c.Get("openID")
-	c.String(200, "你的openID是%s", openID)
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"openID": openID,
+	})
 }
 
 // landingFromWeChat 从微信授权后回到本站点的页面，自带code和from参数

@@ -1,0 +1,22 @@
+{{ template "layout_head.html" .}}
+<div class="weui-msg">
+        <div class="weui-msg__icon-area"><i class="weui-icon-success weui-icon_msg"></i></div>
+        <div class="weui-msg__text-area">
+            <h2 class="weui-msg__title">授权成功</h2>
+            <p class="weui-msg__desc">你的openID是 {{.openID}}</p>
+        </div>
+        <div class="weui-msg__opr-area">
+            <p class="weui-btn-area">
+                <a href="/user?openID={{.openID}}" class="weui-btn weui-btn_primary">读取用户个人资料</a>
+                <!--<a href="javascript:history.back();" class="weui-btn weui-btn_default">辅助操作</a>-->
+            </p>
+        </div>
+        <div class="weui-msg__extra-area">
+            <div class="weui-footer">
+                <p class="weui-footer__links">
+                    <a href="javascript:void(0);" class="weui-footer__link">镁克科技</a>
+                </p>
+            </div>
+        </div>
+    </div>
+{{ template "layout_foot.html" .}}

@@ -101,8 +101,8 @@ func (c *CardService) SetActivateFlag() error {
 	optional := fieldForm{
 		CanModify: false,
 		RichFieldList: []fieldFormSelect{
-			{Type: "FORM_FIELD_RADIO", Name: "大宝生日", Values: []string{"0~1", "1~3", "3~6", "6岁以上"}},
-			{Type: "FORM_FIELD_RADIO", Name: "二宝生日", Values: []string{"0~1", "1~3", "3~6", "6岁以上"}},
+			{Type: "FORM_FIELD_RADIO", Name: "大宝年龄", Values: []string{"0~1岁", "1~3岁", "3~6岁", "6岁以上"}},
+			{Type: "FORM_FIELD_RADIO", Name: "二宝年龄", Values: []string{"0~1岁", "1~3岁", "3~6岁", "6岁以上"}},
 		},
 		CommonFieldIDList: []string{},
 	}

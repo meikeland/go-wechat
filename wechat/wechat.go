@@ -181,7 +181,7 @@ func (w *APIClient) Do(ctx context.Context, req *http.Request, v interface{}) (*
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
 			log.Printf("url %s body %s", req.URL.Path, string(body))
-			err = json.NewDecoder(resp.Body).Decode(v)
+			err = json.Unmarshal(body, v)
 
 			if err == io.EOF {
 				err = nil // ignore EOF errors caused by empty response body

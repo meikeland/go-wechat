@@ -70,7 +70,7 @@ func (c *CardService) GetMemberByCode(cardCode string) (*CardMemberInfo, error) 
 		return nil, errors.New("用户还未激活会员卡")
 	}
 
-	mobileNumber, realname, gender, birthday := unmarshalCardMemberFields(member.UserInfo.CommonFieldList)
+	mobileNumber, gender, realname, birthday := unmarshalCardMemberFields(member.UserInfo.CommonFieldList)
 	baby1, baby2 := unmarshalCardMemberCustomFields(member.UserInfo.CustomFieldList)
 	info := &CardMemberInfo{
 		CardID:       c.wechat.MemberCardID,
@@ -138,7 +138,7 @@ func (c *CardService) GetMemberByOpenid(openid string) (*CardMemberInfo, error) 
 
 // unmarshalCardMemberFields 解析卡会员的参数
 func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realName string, birthday time.Time) {
-	mobile, gender, realName, birthday = "", "", genderOther, time.Now()
+	mobile, gender, realName, birthday = "", genderOther, "", time.Now()
 
 	for _, field := range fields {
 		switch field.Name {
@@ -159,10 +159,12 @@ func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realNa
 				log.Printf("特殊的生日格式：%s", field.Value)
 			}
 		case cardActivateSex:
-			if strings.EqualFold(field.Value, "MALE") {
+			if strings.EqualFold(field.Value, "男") {
 				gender = genderMale
-			} else if strings.EqualFold(field.Value, "FEMAIL") {
+			} else if strings.EqualFold(field.Value, "女") {
 				gender = genderFemale
+			} else {
+				log.Print("其他性别格式 ", field.Value)
 			}
 		case cardActivateName:
 			realName = field.Value
@@ -172,13 +174,13 @@ func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realNa
 }
 
 func unmarshalCardMemberCustomFields(fields []CardMemberField) (baby1, baby2 string) {
-	baby1, baby2 = "2000", "2000"
+	baby1, baby2 = "0~1岁", "0~1岁"
 
 	for _, field := range fields {
 		switch field.Name {
-		case "大宝生日":
+		case "大宝年龄":
 			baby1 = field.Value
-		case "二宝生日":
+		case "二宝年龄":
 			baby2 = field.Value
 		}
 	}

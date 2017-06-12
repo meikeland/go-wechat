@@ -224,7 +224,7 @@ func (c *CardService) GetUseSubmitParam(encryptCode, openid, activateTicket stri
 	if err != nil {
 		return nil, err
 	}
-	mobileNumber, realname, gender, birthday := unmarshalCardMemberFields(memberInfoResult.Info.CommonFieldList)
+	mobileNumber, gender, realname, birthday := unmarshalCardMemberFields(memberInfoResult.Info.CommonFieldList)
 	baby1, baby2 := unmarshalCardMemberCustomFields(memberInfoResult.Info.CustomFieldList)
 	memberInfo := &CardMemberInfo{
 		CardID:       c.wechat.MemberCardID,

@@ -180,6 +180,9 @@ func (w *APIClient) Do(ctx context.Context, req *http.Request, v interface{}) (*
 			io.Copy(w, resp.Body)
 		} else {
 			err = json.NewDecoder(resp.Body).Decode(v)
+			body, err := ioutil.ReadAll(resp.Body)
+			log.Printf("url %s body %s", req.URL.Path, string(body))
+
 			if err == io.EOF {
 				err = nil // ignore EOF errors caused by empty response body
 			}

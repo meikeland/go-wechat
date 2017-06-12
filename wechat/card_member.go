@@ -136,7 +136,6 @@ func (c *CardService) GetMemberByOpenid(openid string) (*CardMemberInfo, error) 
 
 // unmarshalCardMemberFields 解析卡会员的参数
 func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realName, baby1, baby2 string, birthday time.Time) {
-	log.Print(fields)
 	mobile, gender, realName, baby1, baby2, birthday = "", "", genderOther, "2000", "2000", time.Now()
 
 	for _, field := range fields {

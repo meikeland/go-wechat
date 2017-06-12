@@ -154,18 +154,8 @@ func (c *CardService) GetUseSubmitParam(encryptCode, openid, activateTicket stri
 		Errcode int    `json:"errcode"`
 		Errmsg  string `json:"errmsg"`
 		Info    struct {
-			Errcode          int    `json:"errcode"`           // 错误码，0为正常
-			Errmsg           string `json:"errmsg"`            // 错误信息
-			Openid           string `json:"openid"`            // 用户在本公众号内唯一识别码
-			Nickname         string `json:"nickname"`          // 用户昵称
-			MembershipNumber string `json:"membership_number"` // 积分信息
-			Bonus            int    `json:"bonus"`             // 余额信息
-			Sex              string `json:"sex"`               // 用户性别
-			UserInfo         struct {
-				CommonFieldList []CardMemberField `json:"common_field_list"`
-			} `json:"info"` // 会员信息
-			UserCardStatus string `json:"user_card_status"` // 当前用户会员卡状态，NORMAL 正常 EXPIRE 已过期 GIFTING 转赠中 GIFT_SUCC 转赠成功 GIFT_TIMEOUT 转赠超时 DELETE 已删除，UNAVAILABLE 已失效
-			HasActive      bool   `json:"has_active"`       // 当前用户会员卡是否已激活
+			CommonFieldList []CardMemberField `json:"common_field_list"`
+			CustomFieldList []CardMemberField `json:"custom_field_list"`
 		} `json:"info"`
 	}{}
 	_, err = c.wechat.Do(nil, req, memberInfoResult)
@@ -234,7 +224,8 @@ func (c *CardService) GetUseSubmitParam(encryptCode, openid, activateTicket stri
 	if err != nil {
 		return nil, err
 	}
-	mobileNumber, realname, gender, baby1, baby2, birthday := unmarshalCardMemberFields(memberInfoResult.Info.UserInfo.CommonFieldList)
+	mobileNumber, realname, gender, birthday := unmarshalCardMemberFields(memberInfoResult.Info.CommonFieldList)
+	baby1, baby2 := unmarshalCardMemberCustomFields(memberInfoResult.Info.CustomFieldList)
 	memberInfo := &CardMemberInfo{
 		CardID:       c.wechat.MemberCardID,
 		Openid:       openid,

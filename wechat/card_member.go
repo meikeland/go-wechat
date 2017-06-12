@@ -57,6 +57,7 @@ func (c *CardService) GetMemberByCode(cardCode string) (*CardMemberInfo, error) 
 		Sex              string `json:"sex"`               // 用户性别
 		UserInfo         struct {
 			CommonFieldList []CardMemberField `json:"common_field_list"`
+			CustomFieldList []CardMemberField `json:"custom_field_list"`
 		} `json:"user_info"` // 会员信息
 		UserCardStatus string `json:"user_card_status"` // 当前用户会员卡状态，NORMAL 正常 EXPIRE 已过期 GIFTING 转赠中 GIFT_SUCC 转赠成功 GIFT_TIMEOUT 转赠超时 DELETE 已删除，UNAVAILABLE 已失效
 		HasActive      bool   `json:"has_active"`       // 当前用户会员卡是否已激活
@@ -69,7 +70,8 @@ func (c *CardService) GetMemberByCode(cardCode string) (*CardMemberInfo, error) 
 		return nil, errors.New("用户还未激活会员卡")
 	}
 
-	mobileNumber, realname, gender, baby1, baby2, birthday := unmarshalCardMemberFields(member.UserInfo.CommonFieldList)
+	mobileNumber, realname, gender, birthday := unmarshalCardMemberFields(member.UserInfo.CommonFieldList)
+	baby1, baby2 := unmarshalCardMemberCustomFields(member.UserInfo.CustomFieldList)
 	info := &CardMemberInfo{
 		CardID:       c.wechat.MemberCardID,
 		Openid:       member.Openid,
@@ -135,8 +137,8 @@ func (c *CardService) GetMemberByOpenid(openid string) (*CardMemberInfo, error) 
 }
 
 // unmarshalCardMemberFields 解析卡会员的参数
-func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realName, baby1, baby2 string, birthday time.Time) {
-	mobile, gender, realName, baby1, baby2, birthday = "", "", genderOther, "2000", "2000", time.Now()
+func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realName string, birthday time.Time) {
+	mobile, gender, realName, birthday = "", "", genderOther, time.Now()
 
 	for _, field := range fields {
 		switch field.Name {
@@ -164,6 +166,16 @@ func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realNa
 			}
 		case cardActivateName:
 			realName = field.Value
+		}
+	}
+	return
+}
+
+func unmarshalCardMemberCustomFields(fields []CardMemberField) (baby1, baby2 string) {
+	baby1, baby2 = "2000", "2000"
+
+	for _, field := range fields {
+		switch field.Name {
 		case "大宝生日":
 			baby1 = field.Value
 		case "二宝生日":

@@ -1,6 +1,9 @@
 package wechat
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 // UserService 处理与用户相关的API，包括用户授权登录和获取、更新用户资料
 type UserService service
@@ -43,5 +46,6 @@ func (s *UserService) GetUserInfoByOpenid(openid string) (*WXUserInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Print(user)
 	return user, nil
 }

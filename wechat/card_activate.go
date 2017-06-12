@@ -88,21 +88,29 @@ func (c *CardService) SetActivateFlag() error {
 		Name   string   `json:"name"`   // 字段名
 		Values []string `json:"values"` // 选择项
 	}
-	required := struct {
+	type fieldForm struct {
 		CanModify         bool              `json:"can_modify"`           // 当前结构（required_form或者optional_form ）内的字段是否允许用户激活后再次修改，商户设置为true时，需要接收相应事件通知处理修改事件
 		RichFieldList     []fieldFormSelect `json:"rich_field_list"`      // 自定义富文本类型，包含以下三个字段，开发者可以分别在必填和选填中至多定义五个自定义选项
 		CommonFieldIDList []string          `json:"common_field_id_list"` // 微信格式化的选项类型。见以下列表
-	}{
+	}
+	required := fieldForm{
+		CanModify:         false,
+		RichFieldList:     []fieldFormSelect{},
+		CommonFieldIDList: []string{cardActivateMobile, cardActivateSex, cardActivateName, cardActivateBirthday},
+	}
+	optional := fieldForm{
 		CanModify: false,
 		RichFieldList: []fieldFormSelect{
-			{Type: "FORM_FIELD_RADIO", Name: "是否有小孩", Values: []string{"1", "2", "3", "无"}},
+			{Type: "FORM_FIELD_RADIO", Name: "大宝生日", Values: []string{"2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001"}},
+			{Type: "FORM_FIELD_RADIO", Name: "二宝生日", Values: []string{"2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001"}},
 		},
-		CommonFieldIDList: []string{cardActivateMobile, cardActivateSex, cardActivateName, cardActivateBirthday},
+		CommonFieldIDList: []string{},
 	}
 
 	activateFlag := map[string]interface{}{
 		"card_id":       c.wechat.MemberCardID,
 		"required_form": required,
+		"optional_form": optional,
 	}
 	token, err := c.wechat.GetAccessToken()
 	if err != nil {
@@ -226,7 +234,7 @@ func (c *CardService) GetUseSubmitParam(encryptCode, openid, activateTicket stri
 	if err != nil {
 		return nil, err
 	}
-	mobileNumber, realname, gender, birthday := unmarshalCardMemberFields(memberInfoResult.Info.UserInfo.CommonFieldList)
+	mobileNumber, realname, gender, baby1, baby2, birthday := unmarshalCardMemberFields(memberInfoResult.Info.UserInfo.CommonFieldList)
 	memberInfo := &CardMemberInfo{
 		CardID:       c.wechat.MemberCardID,
 		Openid:       openid,
@@ -238,6 +246,8 @@ func (c *CardService) GetUseSubmitParam(encryptCode, openid, activateTicket stri
 		RealName:     realname,
 		Birthday:     birthday,
 		MemberStatus: memberCardStatusNormal,
+		Baby1:        baby1,
+		Baby2:        baby2,
 	}
 	return memberInfo, nil
 }

@@ -21,6 +21,8 @@ type CardMemberInfo struct {
 	RealName     string
 	Birthday     time.Time
 	MemberStatus string
+	Baby1        string
+	Baby2        string
 }
 
 // CardMemberField 卡会员的参数
@@ -67,7 +69,7 @@ func (c *CardService) GetMemberByCode(cardCode string) (*CardMemberInfo, error) 
 		return nil, errors.New("用户还未激活会员卡")
 	}
 
-	mobileNumber, realname, gender, birthday := unmarshalCardMemberFields(member.UserInfo.CommonFieldList)
+	mobileNumber, realname, gender, baby1, baby2, birthday := unmarshalCardMemberFields(member.UserInfo.CommonFieldList)
 	info := &CardMemberInfo{
 		CardID:       c.wechat.MemberCardID,
 		Openid:       member.Openid,
@@ -79,6 +81,8 @@ func (c *CardService) GetMemberByCode(cardCode string) (*CardMemberInfo, error) 
 		RealName:     realname,
 		Birthday:     birthday,
 		MemberStatus: member.UserCardStatus,
+		Baby1:        baby1,
+		Baby2:        baby2,
 	}
 	return info, nil
 }
@@ -131,8 +135,8 @@ func (c *CardService) GetMemberByOpenid(openid string) (*CardMemberInfo, error) 
 }
 
 // unmarshalCardMemberFields 解析卡会员的参数
-func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realName string, birthday time.Time) {
-	mobile, gender, realName, birthday = "", "", genderOther, time.Now()
+func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realName, baby1, baby2 string, birthday time.Time) {
+	mobile, gender, realName, baby1, baby2, birthday = "", "", genderOther, "2000", "2000", time.Now()
 
 	for _, field := range fields {
 		switch field.Name {
@@ -160,6 +164,10 @@ func unmarshalCardMemberFields(fields []CardMemberField) (mobile, gender, realNa
 			}
 		case cardActivateName:
 			realName = field.Value
+		case "大宝生日":
+			baby1 = field.Value
+		case "二宝生日":
+			baby2 = field.Value
 		}
 	}
 	return

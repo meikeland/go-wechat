@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	config := wechat.APIConfig{
+	config := &wechat.APIConfig{
 		AppID:                  "wxadbd9d3df031fabf",
 		AppSecret:              "3b4993c244c39759727c863de53baddb",
 		AccessTokenCachePolicy: wechat.CachePolicyAutonomy,
@@ -69,6 +69,6 @@ func landingFromWeChat(c *gin.Context) {
 	}
 
 	// 为演示方便，这里直接将获取到的openID放到请求参数里了
-	from = fmt.Sprintf("%s?openID=%s", from, user.OpenID)
+	from = fmt.Sprintf("%s?openID=%s", from, user.Openid)
 	c.Redirect(http.StatusFound, from)
 }

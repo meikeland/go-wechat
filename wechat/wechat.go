@@ -16,6 +16,8 @@ import (
 )
 
 const (
+	// CachePolicyNone 缓存AccessToken的策略为不缓存
+	CachePolicyNone = "none"
 	// CachePolicyAutonomy 缓存AccessToken的策略为自治，自主进行7200秒的刷新
 	CachePolicyAutonomy = "autonomy"
 	// CachePolicyHTTP 缓存AccessToken的策略为http，不自己维护AccessToken，每次需要，发送http请求到中控服务器获取
@@ -28,6 +30,7 @@ type APIConfig struct {
 	AppSecret               string // 公众号AppSecret
 	MchID                   string // 商户ID
 	MchSecret               string // 商户Secret
+	MemberCardID            string // 会员卡ID
 	AccessTokenCachePolicy  string // 公众号AccessToken缓存策略
 	AccessTokenCacheAddress string // 公众号AccessToken缓存地址，当APIClient需要用到AccessToken时，会去这个地址获取，只有在policy是http的情况下有用到
 }
@@ -40,6 +43,7 @@ type APIClient struct {
 	AppSecret               string              // 公众号AppSecret
 	MchID                   string              // 商户ID
 	MchSecret               string              // 商户Secret
+	MemberCardID            string              // 会员卡ID
 	accessTokenCachePolicy  string              // 公众号AccessToken缓存策略
 	accessTokenCacheAddress string              // 公众号AccessToken缓存地址
 	autonomicAccessToken    string              // 当accessToken缓存策略为自治时，动态的维护这个accessToken，其他策略下，该数值为空
@@ -56,13 +60,14 @@ type service struct {
 }
 
 // New 生成一个wechat实例
-func New(config APIConfig) *APIClient {
+func New(config *APIConfig) *APIClient {
 	w := &APIClient{
 		client:                 http.DefaultClient,
 		AppID:                  config.AppID,
 		AppSecret:              config.AppSecret,
 		MchID:                  config.MchID,
 		MchSecret:              config.MchSecret,
+		MemberCardID:           config.MemberCardID,
 		accessTokenCachePolicy: config.AccessTokenCachePolicy,
 	}
 
@@ -76,18 +81,20 @@ func New(config APIConfig) *APIClient {
 
 	// 根据AccessToken缓存机制的设置进行初始化
 	switch w.accessTokenCachePolicy {
+	case CachePolicyNone:
+		log.Print("不维护AccessToken")
 	case CachePolicyAutonomy:
 		// 开始自治维护AccessToken
 		w.startTimer()
+		log.Print("自治维护AccessToken")
 	case CachePolicyHTTP:
 		if strings.HasPrefix(config.AccessTokenCacheAddress, "http://") {
 			// 使用AccessTokenCacheAddress
 			w.accessTokenCacheAddress = config.AccessTokenCacheAddress
 		} else {
-			panic("缓存access_token的中控服务器设置无效")
+			panic("缓存AccessToken的中控服务器设置无效")
 		}
-		log.Print("用中控方式获取")
-
+		log.Print("用中控方式获取AccessToken")
 	default:
 		panic("缓存access_token的机制未正确设置")
 	}
@@ -194,7 +201,7 @@ func (w *APIClient) startTimer() {
 		}
 	}
 
-	time.AfterFunc(duration, func() {
+	time.AfterFunc(durationRefreshAccessToken, func() {
 		w.startTimer()
 	})
 }

@@ -11,9 +11,9 @@ import (
 type AccessTokenService service
 
 const (
-	duration             = time.Second * 30
-	urlGetAccessToken    = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
-	urlVerifyAccessToken = "https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=%s"
+	durationRefreshAccessToken = time.Second * 30
+	urlGetAccessToken          = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
+	urlVerifyAccessToken       = "https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=%s"
 )
 
 // Verify 验证当前的access_token是否有效，由于微信并没有提供一个验证有效性的接口

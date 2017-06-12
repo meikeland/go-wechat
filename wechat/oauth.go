@@ -16,7 +16,7 @@ const (
 // 此用户信息只有在scope为snsapi_userinfo时
 // 通过access_token和openid拉取
 type OAuthUser struct {
-	OpenID     string `json:"openid"`
+	Openid     string `json:"openid"`
 	Nickname   string `json:"nickname"`
 	Sex        int    `json:"sex"` //用户的性别，值为1时是男性，值为2时是女性，值为0时是未知
 	Province   string `json:"province"`
@@ -35,7 +35,7 @@ type oauthAccessToken struct {
 	AccessToken  string  `json:"access_token"`
 	ExpiresIn    float64 `json:"expires_in"`
 	RefreshToken string  `json:"refresh_token"`
-	OpenID       string  `json:"openid"`
+	Openid       string  `json:"openid"`
 	UnionID      string  `json:"unionid"`
 	Scope        string  `json:"scope"`
 }
@@ -58,7 +58,7 @@ func (s *OAuthService) GetUserByCode(code string) (*OAuthUser, error) {
 	}
 
 	// 第二步，用access_token去拉取用户信息
-	return s.GetUserByAccessToken(token.AccessToken, token.OpenID)
+	return s.GetUserByAccessToken(token.AccessToken, token.Openid)
 }
 
 // GetUserByAccessToken 当scope为snsapi_userinfo时，通过access_token和openid拉取用户信息

@@ -3,8 +3,6 @@ package wechat
 import (
 	"fmt"
 	"log"
-	"strings"
-	"time"
 
 	"github.com/gotit/errors"
 )
@@ -18,7 +16,7 @@ import (
 */
 
 // SetActivateJump 设置微信激活后跳转连接
-func (c *CardService) SetActivateJump(cardID, submitURL, levelURL, couponURL string) error {
+func (c *CardService) SetActivateJump(submitURL, levelURL, couponURL string) error {
 	type CustomField struct {
 		NameType string `json:"name_type"`
 		URL      string `json:"url"`
@@ -43,7 +41,7 @@ func (c *CardService) SetActivateJump(cardID, submitURL, levelURL, couponURL str
 		},
 	}
 	param := map[string]interface{}{
-		"card_id":     cardID,
+		"card_id":     c.wechat.MemberCardID,
 		"member_card": activate,
 	}
 	token, err := c.wechat.GetAccessToken()
@@ -66,7 +64,7 @@ func (c *CardService) SetActivateJump(cardID, submitURL, levelURL, couponURL str
 	if result.Errcode != 0 {
 		return errors.Errorf("更新会员卡失败 %s", result.Errmsg)
 	}
-	return c.SetActivateFlag(cardID)
+	return c.SetActivateFlag()
 }
 
 /*
@@ -84,7 +82,7 @@ SetActivateFlag 设置微信一键激活参数
 		RequiredForm     fieldForm       `json:"required_form"`     // 会员卡激活时的必填选项
 		OptionalForm     fieldForm       `json:"optional_form"`     // 会员卡激活时的选填项
 	}*/
-func (c *CardService) SetActivateFlag(cardID string) error {
+func (c *CardService) SetActivateFlag() error {
 	type fieldFormSelect struct {
 		Type   string   `json:"type"`   // 富文本类型 FORM_FIELD_RADIO 自定义单选, FORM_FIELD_SELECT 自定义选择项, FORM_FIELD_CHECK_BOX 自定义多选
 		Name   string   `json:"name"`   // 字段名
@@ -103,7 +101,7 @@ func (c *CardService) SetActivateFlag(cardID string) error {
 	}
 
 	activateFlag := map[string]interface{}{
-		"card_id":       cardID,
+		"card_id":       c.wechat.MemberCardID,
 		"required_form": required,
 	}
 	token, err := c.wechat.GetAccessToken()
@@ -129,22 +127,8 @@ func (c *CardService) SetActivateFlag(cardID string) error {
 	return nil
 }
 
-// CardMemberInfo 微信会员卡的会员信息
-type CardMemberInfo struct {
-	CardID       string
-	Openid       string
-	Unionid      string
-	CardCode     string
-	Nickname     string
-	MobileNumber string
-	Gender       string
-	RealName     string
-	Birthday     time.Time
-	MemberStatus string
-}
-
 // GetUseSubmitParam 获取微信指定用户提交的激活信息
-func (c *CardService) GetUseSubmitParam(cardID, encryptCode, openid, activateTicket string) (*CardMemberInfo, error) {
+func (c *CardService) GetUseSubmitParam(encryptCode, openid, activateTicket string) (*CardMemberInfo, error) {
 	// 用解码结果获取激活信息
 	param := map[string]interface{}{
 		"activate_ticket": activateTicket,
@@ -170,10 +154,7 @@ func (c *CardService) GetUseSubmitParam(cardID, encryptCode, openid, activateTic
 			Bonus            int    `json:"bonus"`             // 余额信息
 			Sex              string `json:"sex"`               // 用户性别
 			UserInfo         struct {
-				CommonFieldList []struct {
-					Name  string `json:"name"`  // 会员信息类目名称
-					Value string `json:"value"` // 会员卡信息类目值，比如等级值等
-				} `json:"common_field_list"`
+				CommonFieldList []CardMemberField `json:"common_field_list"`
 			} `json:"user_info"` // 会员信息
 			UserCardStatus string `json:"user_card_status"` // 当前用户会员卡状态，NORMAL 正常 EXPIRE 已过期 GIFTING 转赠中 GIFT_SUCC 转赠成功 GIFT_TIMEOUT 转赠超时 DELETE 已删除，UNAVAILABLE 已失效
 			HasActive      bool   `json:"has_active"`       // 当前用户会员卡是否已激活
@@ -218,7 +199,7 @@ func (c *CardService) GetUseSubmitParam(cardID, encryptCode, openid, activateTic
 	param = map[string]interface{}{
 		"membership_number": cardCodeResult.Code,
 		"code":              cardCodeResult.Code,
-		"card_id":           cardID,
+		"card_id":           c.wechat.MemberCardID,
 	}
 	token, err = c.wechat.GetAccessToken()
 	if err != nil {
@@ -245,40 +226,15 @@ func (c *CardService) GetUseSubmitParam(cardID, encryptCode, openid, activateTic
 	if err != nil {
 		return nil, err
 	}
-	mobileNumber, realname, birthday := "", "", time.Now()
-	for _, field := range memberInfoResult.Info.UserInfo.CommonFieldList {
-		switch field.Name {
-		case cardActivateMobile:
-			mobileNumber = field.Value
-		case cardActivateBirthday:
-			if strings.Contains(field.Value, "0001-01-01") {
-				birthday = time.Now()
-			}
-			if b, e := time.Parse("2006-01-02", field.Value); e == nil {
-				birthday = b
-			} else if b, e := time.Parse("2006-1-02", field.Value); e == nil {
-				birthday = b
-			} else if b, e := time.Parse("2006-01-2", field.Value); e == nil {
-				birthday = b
-			} else if b, e := time.Parse("2006-1-2", field.Value); e == nil {
-				birthday = b
-			} else {
-				log.Printf("特殊的生日格式：%s", field.Value)
-			}
-
-		case cardActivateName:
-			realname = field.Value
-		}
-	}
-
+	mobileNumber, realname, gender, birthday := unmarshalCardMemberFields(memberInfoResult.Info.UserInfo.CommonFieldList)
 	memberInfo := &CardMemberInfo{
-		CardID:       cardID,
+		CardID:       c.wechat.MemberCardID,
 		Openid:       openid,
 		Unionid:      userInfo.Unionid,
 		CardCode:     cardCodeResult.Code,
 		Nickname:     userInfo.Nickname,
 		MobileNumber: mobileNumber,
-		Gender:       convertSexToGender(userInfo.Sex),
+		Gender:       gender,
 		RealName:     realname,
 		Birthday:     birthday,
 		MemberStatus: memberCardStatusNormal,

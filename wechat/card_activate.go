@@ -195,7 +195,7 @@ func (c *CardService) GetUseSubmitParam(encryptCode, openid, activateTicket stri
 
 	// 调用微信接口激活会员卡
 	param = map[string]interface{}{
-		"membership_number": 0,
+		"membership_number": cardCodeResult.Code,
 		"code":              cardCodeResult.Code,
 		"card_id":           c.wechat.MemberCardID,
 	}

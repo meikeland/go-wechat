@@ -38,7 +38,7 @@ const (
 
 	// 性别
 
-	genderFemale = "FAMALE"  // 女
+	genderFemale = "FEMALE"  // 女
 	genderMale   = "MALE"    // 男
 	genderOther  = "UNKNOWN" // 未知
 

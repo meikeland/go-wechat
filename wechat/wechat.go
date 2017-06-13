@@ -180,7 +180,9 @@ func (w *APIClient) Do(ctx context.Context, req *http.Request, v interface{}) (*
 			io.Copy(w, resp.Body)
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
-			log.Printf("url %s body %s", req.URL.Path, string(body))
+			if !strings.Contains(string(body), "ip_list") {
+				log.Printf("url %s body %s", req.URL.Path, string(body))
+			}
 			err = json.Unmarshal(body, v)
 
 			if err == io.EOF {

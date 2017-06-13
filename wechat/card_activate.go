@@ -22,12 +22,14 @@ func (c *CardService) SetActivateJump(submitURL, levelURL, couponURL string) err
 		URL      string `json:"url"`
 	}
 	activate := struct {
-		WxActivate               bool        `json:"wx_activate" form:"wx_activate"` // 微信激活
-		WxActivateAfterSubmit    bool        `json:"wx_activate_after_submit"`       // 是否设置跳转型一键激活
-		WxActivateAfterSubmitURL string      `json:"wx_activate_after_submit_url"`   // 用户提交信息后跳转的网页
+		AutoActivate             bool        `json:"auto_activate" form:"auto_activate"` // 是否自动激活
+		WxActivate               bool        `json:"wx_activate" form:"wx_activate"`     // 微信激活
+		WxActivateAfterSubmit    bool        `json:"wx_activate_after_submit"`           // 是否设置跳转型一键激活
+		WxActivateAfterSubmitURL string      `json:"wx_activate_after_submit_url"`       // 用户提交信息后跳转的网页
 		CustomField2             CustomField `json:"custom_field2"`
 		CustomField3             CustomField `json:"custom_field3"`
 	}{
+		AutoActivate:             false,
 		WxActivate:               true,
 		WxActivateAfterSubmit:    true,
 		WxActivateAfterSubmitURL: submitURL,
